@@ -139,95 +139,149 @@ const blocks = [
   ]
 ];
 
-let m, n, a, l, res;
+let row, column, solvingTable, solvingBlockNums, results;
+let lastSolvingBlockNums;
 
-function Solve(arr, num) {
-  res = [];
-  m = arr.length;
-  n = arr[0].length;
-
-  a = new Array(m);
-  for (let i = 0; i < m; ++i) {
-    a[i] = arr[i].map(x => x);
-  }
-
-  l = num.map(x => x);
-
-  dfs(0);
-
-  // Sort res by the number of distinct elements in each matrix, in descending order
-  // If the number of distinct elements is the same, sort by the highest number in l for each element used in A and B
-  res.sort((A, B) => {
-    let distinctA = new Set(A.flat()).size;
-    let distinctB = new Set(B.flat()).size;
-
-    if (distinctA !== distinctB) {
-      return distinctB - distinctA;
-    } else {
-      let maxA = Math.max(...A.flat().map(x => l[x-1]));
-      let maxB = Math.max(...B.flat().map(x => l[x-1]));
-      return maxB - maxA;
-    }
-  });
-
-  return res;
+function getSortedBlockIndexes(nums) {
+  return nums
+    .map((value, index) => ({ value, index }))
+    .sort((a, b) => {
+      // 最先使用 8 号
+      if (a.index === 7) return -1
+      // 最后使用 9~11 号
+      if (a.index > 7) return 1
+      // 普通方块
+      return b.value - a.value
+    })
+    .map(item => item.index)
 }
 
-function canPlaceBlock(x, y, b, d) {
-  const pat = blocks[b][d];
+function getBlockSize(type) {
+  if (type===-1){
+    return 0
+  }
+  return blocks[type][0].flat().filter(i => i > 0).length
+}
+
+function getBlockUsed(result) {
+  return result.flat().reduce((a, c) => {
+    if (a[c]) {
+      a[c] += 1
+    } else {
+      a[c] = 1
+    }
+    return a
+  }, []).map((n, t) => n / getBlockSize(t - 1))
+}
+
+function variance(arr) {
+  let mean = arr.reduce((acc, val) => acc + val, 0) / arr.length;
+  let squaredDiffs = arr.map(val => Math.pow(val - mean, 2));
+  let powSum = squaredDiffs.reduce((acc, val) => acc + val, 0);
+  return powSum / (arr.length - 1);
+}
+
+function varianceOfResult(blockNums, result) {
+  if (result.number) return result.number
+  let blockUsed = getBlockUsed(result)
+  let blockUsedNums = blockNums.map((x, i) => blockUsed[i + 1] ? x - blockUsed[i + 1] : x)
+  let arr = blockUsedNums.slice(0, 7)
+  let number = variance(arr)
+  result.number = number
+  return number
+}
+
+function Solve(table, blockNums) {
+
+  results = [];
+  row = table.length;
+  column = table[0].length;
+
+  solvingTable = new Array(row);
+  for (let i = 0; i < row; ++i) {
+    solvingTable[i] = table[i].map(x => x);
+  }
+
+  solvingBlockNums = blockNums.map(x => x);
+
+  let specialBlockNums = []
+  for (let i = 8; i < 11; ++i) {
+    specialBlockNums[i] = solvingBlockNums[i]
+    solvingBlockNums[i] = 0
+  }
+
+  while (results.length === 0) {
+    lastSolvingBlockNums = solvingBlockNums.map(x => x)
+    dfs(0)
+    if (results.length) {
+      console.log("at less 1 found, end.")
+      break
+    }
+    if (!specialBlockNums.reduce((p, c) => p + c)) {
+      console.log("no more special blocks, break!!")
+      break
+    }
+
+    let specialBlockIndexMax = specialBlockNums.indexOf(Math.max(specialBlockNums[8], specialBlockNums[9], specialBlockNums[10]))
+    ++solvingBlockNums[specialBlockIndexMax]
+    --specialBlockNums[specialBlockIndexMax]
+  }
+
+  results.sort((a, b) => varianceOfResult(blockNums, a) - varianceOfResult(blockNums, b))
+
+  return results
+}
+
+function canPlaceBlock(x, y, blockIndex, direction) {
+  const pat = blocks[blockIndex][direction];
   let offset = 0;
   while (!pat[0][offset]) ++offset;
   y -= offset;
   if (y < 0) return false;
   for (let i = 0; i < pat.length; ++i) {
     for (let j = 0; j < pat[0].length; ++j) {
-      if (pat[i][j] && (x + i >= m || y + j >= n || a[x + i][y + j] !== -1)) return false;
+      if (pat[i][j] && (x + i >= row || y + j >= column || solvingTable[x + i][y + j] !== -1)) return false;
     }
   }
   return true;
 }
 
-function placeBlock(x, y, b, d, v) {
-  const pat = blocks[b][d];
+function placeBlock(x, y, blockIndex, direction, solvedBlockType) {
+  const pat = blocks[blockIndex][direction];
   let offset = 0;
   while (!pat[0][offset]) ++offset;
   y -= offset;
   for (let i = 0; i < pat.length; ++i) {
     for (let j = 0; j < pat[0].length; ++j) {
-      if (pat[i][j]) a[x + i][y + j] = v;
+      if (pat[i][j]) solvingTable[x + i][y + j] = solvedBlockType;
     }
   }
 }
 
-function dfs(p) {
-  if (p === m * n) {
-    const x = new Array(m);
-    for (let i = 0; i < m; ++i) {
-      x[i] = a[i].map(x => x);
+function dfs(positionIndex) {
+  if (positionIndex === row * column) {
+    const solvedTable = new Array(row);
+    for (let i = 0; i < row; ++i) {
+      solvedTable[i] = solvingTable[i].map(x => x);
     }
-    res.push(x);
-    if (res.length >= 10000) {
-      alert('方案数太多，仅计算前一万种。减少一些方块吧~');
-      return true;
-    }
-    return false;
+    results.push(solvedTable);
+    return results.length >= 9999;
+
   }
-  const x = Math.floor(p / n), y = p % n;
-  if (a[x][y] !== -1) {
-    if (dfs(p + 1)) return true;
-    return false;
+  const x = Math.floor(positionIndex / column), y = positionIndex % column;
+  if (solvingTable[x][y] !== -1) {
+    return dfs(positionIndex + 1);
   }
-  for (let b = 0; b < blocks.length; ++b) {
-    if (!l[b]) continue;
-    for (let d = 0; d < blocks[b].length; ++d) {
-      if (!canPlaceBlock(x, y, b, d)) continue;
-      placeBlock(x, y, b, d, b + 1);
-      --l[b];
-      if (dfs(p + 1)) return true;
-      ++l[b];
-      placeBlock(x, y, b, d, -1);
+  for (const blockIndex of getSortedBlockIndexes(solvingBlockNums)) {
+    if (!solvingBlockNums[blockIndex]) continue;
+    for (let direction = 0; direction < blocks[blockIndex].length; ++direction) {
+      if (!canPlaceBlock(x, y, blockIndex, direction)) continue;
+      placeBlock(x, y, blockIndex, direction, blockIndex + 1);
+      --solvingBlockNums[blockIndex];
+      if (dfs(positionIndex + 1)) return true;
+      ++solvingBlockNums[blockIndex];
+      placeBlock(x, y, blockIndex, direction, -1);
     }
   }
   return false;
 }
-
