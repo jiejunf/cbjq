@@ -28,7 +28,12 @@
     </div>
     <div v-if="board.length" style="margin-top: 8px;display: inline-block">
       <p v-for="(b, i) in num">
-        <label>方块{{ i + 1 }}个数：<input type="text" v-model.number="num[i]" style="float: right;"/></label>
+        <label>方块{{ i + 1 }}个数：
+          <span class="float-right">
+            <input :tabindex="i+1" class="num-input" max="50" min="0" type="number" v-model.number="num[i]">
+            <input :tabindex="i+100" max="50" min="0" type="range" v-model.number="num[i]"/>
+          </span>
+        </label>
       </p>
       <ol>
         <li>优先使用 8 号</li>
@@ -37,6 +42,7 @@
         <li>只尽可能计算前 9999 个方案</li>
       </ol>
       <input type="button" value="计算完美方案" @click="calc">
+      <input type="button" value="所有普通方块+9" @click="fillNormal">
     </div>
     <div style="display: inline-block;margin: 10px;">
     <div v-if="res !== false">
@@ -95,6 +101,11 @@
           this.res = Solve(this.board, this.num)
           this.now = 0
         },
+        fillNormal() {
+          for (let i = 0; i < 7; i++) {
+            this.num[i] += 9
+          }
+        }
       },
       computed: {
         sol() {
@@ -128,6 +139,15 @@
       height: 32px;
       border: 1px black solid;
       cursor: pointer;
+    }
+
+    .float-right {
+        float: right;
+    }
+
+    .num-input {
+        width: 3rem;
+        text-align: center;
     }
   </style>
 </body>
