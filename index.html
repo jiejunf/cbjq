@@ -14,11 +14,11 @@
   <br>
   <a href="https://github.com/jiejunf/cbjq" target="_blank">此版本 Github</a>
   <div id="app">
-    <p>行数：<input type="text" v-model="row" /></p>
-    <p>列数：<input type="text" v-model="col" /></p>
+    <p><label>行数：<input type="text" v-model="row"/></label></p>
+    <p><label>列数：<input type="text" v-model="col"/></label></p>
     <input type="button" value="确定" @click="confirmBoard">
     <p>红色表示需要摆放的格子，白色表示这里没有格子，点击切换</p>
-    <div v-for="(r, i) in board" style="height: 32px;">
+    <div v-for="(r, i) in board" style="height: 32px;" class="box-container">
       <div
         class="box"
         v-for="(c, j) in r"
@@ -26,8 +26,10 @@
         :style="{ 'background-color': c === 0 ? 'white' : 'red' }"
       ></div>
     </div>
-    <div v-if="board.length" style="margin-top: 8px;">
-      <p v-for="(b, i) in num">方块{{ i + 1 }}个数：<input type="text" v-model.number="num[i]" /></p>
+    <div v-if="board.length" style="margin-top: 8px;display: inline-block">
+      <p v-for="(b, i) in num">
+        <label>方块{{ i + 1 }}个数：<input type="text" v-model.number="num[i]" style="float: right;"/></label>
+      </p>
       <ol>
         <li>优先使用 8 号</li>
         <li>优先不使用 9 号及以上</li>
@@ -36,6 +38,7 @@
       </ol>
       <input type="button" value="计算完美方案" @click="calc">
     </div>
+    <div style="display: inline-block;margin: 10px;">
     <div v-if="res !== false">
       <p>方案数：{{ res.length }}</p>
     </div>
@@ -48,9 +51,11 @@
           class="box"
           v-for="(c, j) in r"
           :style="{ 'background-color': color[c] }"
-        >{{ c }}</div>
+        >{{ c }}
+        </div>
       </div>
       <p>方案使用后方差：{{ sol.number?.toFixed(2) }}</p>
+    </div>
     </div>
   </div>
   <script>
