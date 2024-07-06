@@ -30,19 +30,45 @@
       <p v-for="(b, i) in num">
         <label>方块{{ i + 1 }}个数：
           <span class="float-right">
+            <button @click="num[i]--" :disabled="num[i]<1"> - </button>
             <input :tabindex="i+1" class="num-input" max="50" min="0" type="number" v-model.number="num[i]">
-            <input :tabindex="i+100" max="50" min="0" type="range" v-model.number="num[i]"/>
+            <button @click="num[i]++"> + </button>
+            <input :tabindex="i+100" max="50" min="0" type="range" v-model.number.lazy="num[i]"/>
           </span>
         </label>
       </p>
+      <input type="button" value="计算完美方案" @click="calc">
+      <input type="button" value="所有普通方块+9" @click="fillNormal">
       <ol>
         <li>优先使用 8 号</li>
         <li>优先不使用 9 号及以上</li>
         <li>平均使用 9 号及以上</li>
         <li>只尽可能计算前 9999 个方案</li>
+        <li>
+          <section class="note" :class="numOfBoard % 4 === 0? 'warning' : ''">家具票基础奖励与棋盘格数挂钩!</section>
+          <details>
+            <table>
+              <thead>
+              <tr>
+                <td>格数</td>
+                <td>基础</td>
+                <td>完美</td>
+              </tr>
+              </thead>
+              <tbody>
+              <tr v-for="board in (31 - 24)" :class="numOfBoard === (31 - board) ? 'border-tr' :''">
+                <td>{{ 31 - board }}</td>
+                <td :class="(31-board)%4===0?'warning':''">
+                  {{ (31 - board) % 4 === 0 ? 80 : (90 + (31 - board === 30 ? 10 : 0)) }}
+                </td>
+                <td :class="board===7?'warning':''">{{ board === 7 ? 40 : 50 }}</td>
+              </tr>
+              </tbody>
+            </table>
+          </details>
+      
+        </li>
       </ol>
-      <input type="button" value="计算完美方案" @click="calc">
-      <input type="button" value="所有普通方块+9" @click="fillNormal">
     </div>
     <div style="display: inline-block;margin: 10px;">
     <div v-if="res !== false">
@@ -110,7 +136,10 @@
       computed: {
         sol() {
           return this.res[this.now]
-        }
+        },
+        numOfBoard() {
+          return this.board.flat().filter(b => b < 0).length
+        },
       },
       watch: {
         board: {
@@ -148,6 +177,41 @@
     .num-input {
         width: 3rem;
         text-align: center;
+    }
+
+    .warning {
+        color: red;
+    }
+    .warning::after {
+        content: '↓';
+    }
+
+    .note::after {
+        content: '!';
+        background-color: gray;
+        color: white;
+        display: inline-block;
+        width: 1rem;
+        height: 1rem;
+        line-height: 1rem;
+        text-align: center;
+        border-radius: 1rem;
+        font-weight: bolder;
+    }
+    
+    .border-tr {
+        td:first-child {
+            border-left: 1px black dashed;
+        }
+        
+        td:last-child {
+            border-right: 1px black dashed;
+        }
+        
+        td {
+            border-top: 1px black dashed;
+            border-bottom: 1px black dashed;
+        }
     }
   </style>
 </body>
