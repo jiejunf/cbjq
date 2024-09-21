@@ -10,67 +10,67 @@
 </head>
 
 <body>
-  <a href="https://space.bilibili.com/277401945" target="_blank">原作者：Bilibili 方形的块状代码</a>
-  <br>
-  <a href="https://github.com/jiejunf/cbjq" target="_blank">此版本 Github</a>
-  <div id="app">
-    <p><label>行数：<input type="text" v-model="row"/></label></p>
-    <p><label>列数：<input type="text" v-model="col"/></label></p>
-    <input type="button" value="确定" @click="confirmBoard">
-    <p>红色表示需要摆放的格子，白色表示这里没有格子，点击切换</p>
-    <div v-for="(r, i) in board" style="height: 32px;" class="box-container">
-      <div
-        class="box"
-        v-for="(c, j) in r"
-        @click="tuneBox(i, j)"
-        :style="{ 'background-color': c === 0 ? 'white' : 'red' }"
-      ></div>
-    </div>
-    <div v-if="board.length" style="margin-top: 8px;display: inline-block">
-      <p v-for="(b, i) in num">
-        <label>方块{{ i + 1 }}个数：
-          <span class="float-right">
+<a href="https://space.bilibili.com/277401945" target="_blank">原作者：Bilibili 方形的块状代码</a>
+<br>
+<a href="https://github.com/jiejunf/cbjq" target="_blank">此版本 Github</a>
+<div id="app">
+  <p><label>行数：<input type="text" v-model="row"/></label></p>
+  <p><label>列数：<input type="text" v-model="col"/></label></p>
+  <input type="button" value="确定" @click="confirmBoard">
+  <p>红色表示需要摆放的格子，白色表示这里没有格子，点击切换</p>
+  <div v-for="(r, i) in board" style="height: 32px;" class="box-container">
+    <div
+      class="box"
+      v-for="(c, j) in r"
+      @click="tuneBox(i, j)"
+      :style="{ 'background-color': c === 0 ? 'white' : 'red' }"
+    ></div>
+  </div>
+  <div v-if="board.length" style="margin-top: 8px;display: inline-block">
+    <p v-for="(b, i) in num">
+      <label>方块{{ i + 1 }}个数：
+        <span class="float-right">
             <button @click="num[i]--" :disabled="num[i]<1"> - </button>
             <input :tabindex="i+1" class="num-input" max="50" min="0" type="number" v-model.number="num[i]">
             <button @click="num[i]++"> + </button>
-            <input :tabindex="i+100" max="50" min="0" type="range" v-model.number.lazy="num[i]"/>
+            <input :tabindex="i+100" max="50" min="0" type="range" v-model.number="num[i]"/>
           </span>
-        </label>
-      </p>
-      <input type="button" value="计算完美方案" @click="calc">
-      <input type="button" value="所有普通方块+9" @click="fillNormal">
-      <ol>
-        <li>优先使用 8 号</li>
-        <li>优先不使用 9 号及以上</li>
-        <li>平均使用 9 号及以上</li>
-        <li>只尽可能计算前 9999 个方案</li>
-        <li>
-          <section class="note" :class="numOfBoard % 4 === 0? 'warning' : ''">家具票基础奖励与棋盘格数挂钩!</section>
-          <details>
-            <table>
-              <thead>
-              <tr>
-                <td>格数</td>
-                <td>基础</td>
-                <td>完美</td>
-              </tr>
-              </thead>
-              <tbody>
-              <tr v-for="board in (31 - 24)" :class="numOfBoard === (31 - board) ? 'border-tr' :''">
-                <td>{{ 31 - board }}</td>
-                <td :class="(31-board)%4===0?'warning':''">
-                  {{ (31 - board) % 4 === 0 ? 80 : (90 + (31 - board === 30 ? 10 : 0)) }}
-                </td>
-                <td :class="board===7?'warning':''">{{ board === 7 ? 40 : 50 }}</td>
-              </tr>
-              </tbody>
-            </table>
-          </details>
-      
-        </li>
-      </ol>
-    </div>
-    <div style="display: inline-block;margin: 10px;">
+      </label>
+    </p>
+    <input type="button" value="计算完美方案" @click="calc">
+    <input type="button" value="所有普通方块+9" @click="fillNormal">
+    <ol>
+      <li>优先使用 8 号</li>
+      <li>优先不使用 9 号及以上</li>
+      <li>平均使用 9 号及以上</li>
+      <li>只尽可能计算前 9999 个方案</li>
+      <li>
+        <section class="note" :class="numOfBoard % 4 === 0? 'warning' : ''">家具票基础奖励与棋盘格数挂钩!</section>
+        <details>
+          <table>
+            <thead>
+            <tr>
+              <td>格数</td>
+              <td>基础</td>
+              <td>完美</td>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="board in (31 - 24)" :class="numOfBoard === (31 - board) ? 'border-tr' :''">
+              <td>{{ 31 - board }}</td>
+              <td :class="(31-board)%4===0?'warning':''">
+                {{ (31 - board) % 4 === 0 ? 80 : (90 + (31 - board === 30 ? 10 : 0)) }}
+              </td>
+              <td :class="board===7?'warning':''">{{ board === 7 ? 40 : 50 }}</td>
+            </tr>
+            </tbody>
+          </table>
+        </details>
+
+      </li>
+    </ol>
+  </div>
+  <div style="display: inline-block;margin: 10px;">
     <div v-if="res !== false">
       <p>方案数：{{ res.length }}</p>
     </div>
@@ -79,7 +79,9 @@
       <input type="button" value="<-" @click="now -= (now > 0)">
       <input type="button" value="->" @click="now += (now + 1 < res.length)">
       <input type="button" value="扣除当前" @click="subCurrent()" style="float: right;">
+      <!--suppress JSUnusedLocalSymbols -->
       <div v-for="(r, i) in sol" style="height: 32px;">
+        <!--suppress JSUnusedLocalSymbols -->
         <div
           class="box"
           v-for="(c, j) in r"
@@ -89,99 +91,128 @@
       </div>
       <p>方案使用后方差：{{ sol.number?.toFixed(2) }}</p>
     </div>
-    </div>
   </div>
-  <script>
-    const { createApp } = Vue
-    createApp({
-      data() {
-        return {
-          row: 5,
-          col: 6,
-          board: [],
-          num: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-          res: false,
-          now: 0,
-          color: ['white', '#75C0FF', '#3B66CF', '#78ACC5', '#C8FAFD', '#FDFF00', '#4BFF00', '#FF9800', '#B9B24B', '#FF00AE', '#8A2BE2', '#FF00FF']
-        }
-      },
-      mounted() {
-        this.confirmBoard()
-      },
-      methods: {
-        confirmBoard() {
-          const row = Number(this.row)
-          const col = Number(this.col)
-          this.board = new Array(row)
-          for (let i = 0; i < row; ++i) {
-            this.board[i] = new Array(col).fill(-1)
-          }
-        },
-        tuneBox(x, y) {
-          if (this.board[x][y] === -1) {
-            this.board[x][y] = 0
-          } else {
-            this.board[x][y] = -1
-          }
-        },
-        calc() {
-          this.res = Solve(this.board, this.num)
-          this.now = 0
-        },
-        fillNormal() {
-          for (let i = 0; i < 7; i++) {
-            this.num[i] += 9
-          }
-        },
-        subCurrent() {
-          let sum = []
-          for (const row of this.sol) {
-            for (const col of row) {
-              if (!sum[col]) sum[col] = 0
-              sum[col] += 1
-            }
-          }
-          for (let num in sum) {
-            num = num.toString()
-            if (num === '0') continue
-            let size = 4
-            if (num === '8') {
-              size = 5;
-            } else if (num === '9') {
-              size = 1;
-            } else if (num === '10') {
-              size = 2;
-            } else if (num === '11') {
-              size = 3;
-            }
-            this.num[num - 1] -= (sum[num] / size)
-          }
-        },
-      },
-      computed: {
-        sol() {
-          return this.res[this.now]
-        },
-        numOfBoard() {
-          return this.board.flat().filter(b => b < 0).length
-        },
-      },
-      watch: {
-        board: {
-          handler() {
-            this.calc()
-          },
-          deep: true,
-        },
-        num: {
-          handler() {
-            this.calc()
-          },
-          deep: true,
-        }
+</div>
+<script>
+  const { createApp } = Vue
+  // noinspection JSUnusedGlobalSymbols
+  createApp({
+    data() {
+      return {
+        row: 5,
+        col: 6,
+        board: [],
+        num: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        res: false,
+        now: 0,
+        calcWorker: null,
+        color: ['white', '#75C0FF', '#3B66CF', '#78ACC5', '#C8FAFD', '#FDFF00', '#4BFF00', '#FF9800', '#B9B24B', '#FF00AE', '#8A2BE2', '#FF00FF']
       }
-    }).mount('#app')
-  </script>
+    },
+    mounted() {
+      // noinspection JSUnresolvedReference
+      this.confirmBoard()
+    },
+    methods: {
+      confirmBoard() {
+        const row = Number(this.row)
+        const col = Number(this.col)
+        this.board = new Array(row)
+        for (let i = 0; i < row; ++i) {
+          this.board[i] = new Array(col).fill(-1)
+        }
+      },
+      tuneBox(x, y) {
+        if (this.board[x][y] === -1) {
+          this.board[x][y] = 0
+        } else {
+          this.board[x][y] = -1
+        }
+      },
+      calcByWorker() {
+        if (this.calcWorker) {
+          this.calcWorker.terminate()
+        }
+        this.calcWorker = new Worker('calc.min.js')
+        this.calcWorker.onmessage = event => {
+          // console.log('worker received', event.data)
+          let result = event.data
+          if (result.from === 'Solve') {
+            this.displayResults(result.data)
+          }
+          this.calcWorker.terminate()
+        }
+        this.calcWorker.postMessage(JSON.parse(JSON.stringify({
+          target: 'Solve',
+          table: this.board,
+          blockNums: this.num
+        })))
+      },
+      calc() {
+        if (window.Worker) {
+          this.calcByWorker()
+          return
+        }
+        this.displayResults(Solve(this.board, this.num))
+      },
+      displayResults(res) {
+        this.res = res
+        this.now = 0
+      },
+      fillNormal() {
+        for (let i = 0; i < 7; i++) {
+          this.num[i] += 9
+        }
+      },
+      subCurrent() {
+        let sum = []
+        for (const row of this.sol) {
+          for (const col of row) {
+            if (!sum[col]) sum[col] = 0
+            sum[col] += 1
+          }
+        }
+        for (let num in sum) {
+          num = num.toString()
+          if (num === '0') continue
+          let size = 4
+          if (num === '8') {
+            size = 5;
+          } else if (num === '9') {
+            size = 1;
+          } else if (num === '10') {
+            size = 2;
+          } else if (num === '11') {
+            size = 3;
+          }
+          this.num[num - 1] -= (sum[num] / size)
+        }
+      },
+    },
+    computed: {
+      sol() {
+        return this.res[this.now]
+      },
+      numOfBoard() {
+        return this.board.flat().filter(b => b < 0).length
+      },
+    },
+    watch: {
+      board: {
+        handler() {
+          this.calc()
+        },
+        deep: true,
+      },
+      num: {
+        handler() {
+          this.calc()
+        },
+        deep: true,
+      }
+    }
+  }).mount('#app')
+</script>
   <style>
     p {
       margin: 4px 0;

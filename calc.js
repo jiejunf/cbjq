@@ -157,7 +157,7 @@ function getSortedBlockIndexes(nums) {
 }
 
 function getBlockSize(type) {
-  if (type===-1){
+  if (type === -1) {
     return 0
   }
   return blocks[type][0].flat().filter(i => i > 0).length
@@ -284,4 +284,18 @@ function dfs(positionIndex) {
     }
   }
   return false;
+}
+
+// =================================== worker =====================================
+
+self.onmessage = event => {
+  // console.log("data input:", event.data);
+  let data = event.data;
+  let result = { from: data.target }
+  if (data.target === 'Solve') {
+    result.data = Solve(data.table, data.blockNums)
+  }
+  if (result.from) {
+    self.postMessage(result);
+  }
 }
