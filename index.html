@@ -58,6 +58,38 @@
       <v-list-item id="nav_board_config" link>重置底盘</v-list-item>
       <v-list-item id="nav_my_blocks" link>我的方块</v-list-item>
       <v-divider></v-divider>
+      <v-list-item>
+        <v-row no-gutters>
+          <!--suppress JSUnusedLocalSymbols -->
+          <v-col cols="6" v-for="(_,i) in num">
+            <v-text-field
+              v-model.number="num[i]"
+              :label="'方块 ' + (i+1)"
+              :rules="[rules.isBlockNum]"
+              class="ma-2"
+              density="compact"
+              hide-details
+              min="0"
+              type="number"
+              variant="outlined"
+            ></v-text-field>
+          </v-col>
+          <v-col cols="6">
+            <v-text-field
+              v-model.number="num_for_all"
+              :rules="[rules.isBlockNum]"
+              class="ma-2"
+              density="compact"
+              hide-details
+              label="全部"
+              min="0"
+              type="number"
+              variant="outlined"
+              @input="fillBlocks(num_for_all)"
+            ></v-text-field>
+          </v-col>
+        </v-row>
+      </v-list-item>
     </v-navigation-drawer>
 
     <v-main>
@@ -79,6 +111,17 @@
               ></h3>
               <v-icon icon="mdi-help" v-else></v-icon>
             </v-responsive>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col>
+            <v-slide-x-transition>
+              <v-alert
+                v-show="is_low_records"
+                :type="numOfBoard>24?'warning':'error'"
+                text="此底盘布局奖励低，建议重构布局！"
+              ></v-alert>
+            </v-slide-x-transition>
           </v-col>
         </v-row>
         <v-row v-show="res.length>0" class="text-center">
@@ -114,17 +157,6 @@
             <div class="text-subtitle-2">
               基础奖励
             </div>
-          </v-col>
-        </v-row>
-        <v-row>
-          <v-col>
-            <v-fade-transition>
-              <v-alert
-                :model-value="is_low_records"
-                :type="numOfBoard>24?'warning':'error'"
-                text="此底盘布局奖励低，建议重构布局！"
-              ></v-alert>
-            </v-fade-transition>
           </v-col>
         </v-row>
       </v-container>
@@ -166,23 +198,24 @@
             <v-toolbar-title text="方块数量"></v-toolbar-title>
             <v-spacer></v-spacer>
             <v-toolbar-items>
-              <v-btn text="I'm rich" @click="fillBlocks"></v-btn>
+              <v-btn text="I'm rich" @click="fillBlocks()"></v-btn>
             </v-toolbar-items>
           </v-toolbar>
           <v-list lines="two" class="bg-transparent">
             <!--suppress JSUnusedLocalSymbols -->
             <v-list-item
               v-for="(b, i) in num"
-              v-model="num[i]"
             >
               <v-row no-gutters>
                 <v-col class="v-col-sm-1 offset-md-1">
                   <v-text-field
                     v-model.number="num[i]"
                     :label="'方块 ' + (i+1)"
+                    :rules="[rules.isBlockNum]"
                     class="ma-2"
                     density="compact"
                     hide-details
+                    min="0"
                     tabindex="101"
                     type="number"
                     variant="outlined"
@@ -211,7 +244,7 @@
 
 <script>
   const { createApp } = Vue
-  const { createVuetify, blueprints, VThemeTransition } = Vuetify
+  const { createVuetify, blueprints } = Vuetify
   const vuetify = createVuetify({
     blueprint: blueprints.md3,
   })
@@ -231,7 +264,9 @@
         rules: {
           lte10: value => value <= 10 || '数值应该小于/等于 10',
           gte1: value => value >= 1 || '数值应该大于/等于 1',
+          isBlockNum: value => (value >= 0 && value <= 100) || '数值在 0-100 之间',
         },
+        num_for_all: null,
 
         row: 5,
         col: 6,
@@ -294,6 +329,8 @@
       },
       calc() {
         this.loading = true
+        this.res = []
+        this.now = 0
         if (window.Worker) {
           this.calcByWorker()
           return
@@ -305,10 +342,8 @@
         this.now = 0
         this.loading = false
       },
-      fillBlocks() {
-        for (let i = 0; i < 11; i++) {
-          this.num[i] = 9
-        }
+      fillBlocks(n = 9) {
+        this.num = Array(11).fill(n)
         this.show_blocks_dialog = false
       },
       subByRes() {
