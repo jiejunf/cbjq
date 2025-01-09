@@ -90,6 +90,20 @@
           </v-col>
         </v-row>
       </v-list-item>
+      <v-divider></v-divider>
+      <v-list-item>
+        <v-list-item-title>结果过滤</v-list-item-title>
+        <v-text-field
+          v-model.number="block8target"
+          class="ma-2"
+          :min="0"
+          :rules="[rules.gte0, rules.lteBlock8]"
+          density="compact"
+          label="方块8不少于"
+          type="number"
+          variant="outlined"
+        ></v-text-field>
+      </v-list-item>
     </v-navigation-drawer>
 
     <v-main>
@@ -100,8 +114,9 @@
           >
             <v-responsive
               :class="res.length>0? 'bg-'+color[sol[i][j]] :(c===0? 'bg-grey' : 'bg-grey-darken-1')"
+              :style="styleForBox(i, j)"
               aspect-ratio="1"
-              class="border-md cursor-pointer text-center align-center color-transition"
+              class="cursor-pointer text-center align-center color-transition"
               @click="tuneBox(i, j)"
             >
               <v-icon icon="mdi-close" v-if="c===0"></v-icon>
@@ -142,13 +157,13 @@
         </v-row>
         <v-row v-show="res.length>0" class="text-center">
           <v-col>
-            {{ sol?.number?.toFixed(2) || '-' }}
+            {{ sol?.variance?.toFixed(2) || '-' }}
             <div class="text-subtitle-2">
               方案方差
             </div>
           </v-col>
           <v-col>
-            <v-btn icon="mdi-check" @click="subByRes" variant="outlined"></v-btn>
+            <v-btn :disabled="false" icon="mdi-check" variant="outlined" @click="subByRes"></v-btn>
           </v-col>
           <v-col>
             {{ is_low_records ? 80 : (90 + (numOfBoard === 30 ? 10 : 0)) }}
@@ -162,7 +177,7 @@
       </v-container>
     </v-main>
     <v-footer app class="d-flex flex-column" :class="{ 'color-transition': theme_transitioning }">
-      <div>2024 — <strong>jiejunf</strong></div>
+      <div>2025 — <strong>jiejunf</strong></div>
     </v-footer>
 
     <v-dialog v-model="show_board_dialog" activator="#nav_board_config" width="auto">
@@ -264,7 +279,9 @@
         rules: {
           lte10: value => value <= 10 || '数值应该小于/等于 10',
           gte1: value => value >= 1 || '数值应该大于/等于 1',
+          gte0: value => value >= 0 || '数值应该大于/等于 0',
           isBlockNum: value => (value >= 0 && value <= 100) || '数值在 0-100 之间',
+          lteBlock8: value => value <= this.num[7] || '数值超过了方块 8'
         },
         num_for_all: null,
 
@@ -272,6 +289,7 @@
         col: 6,
         board: [],
         num: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        block8target: 0,
         res: [],
         now: 0,
         calcWorker: null,
@@ -324,7 +342,8 @@
         this.calcWorker.postMessage(JSON.parse(JSON.stringify({
           target: 'Solve',
           table: this.board,
-          blockNums: this.num
+          blockNums: this.num,
+          block8target: this.block8target,
         })))
       },
       calc() {
@@ -335,7 +354,7 @@
           this.calcByWorker()
           return
         }
-        this.displayResults(Solve(this.board, this.num))
+        this.displayResults(Solve(this.board, this.num, this.block8target))
       },
       displayResults(res) {
         this.res = res
@@ -369,12 +388,31 @@
           }
           this.num[num - 1] -= (sum[num] / size)
         }
+        this.confirmBoard()
       },
       toggleTheme() {
         this.theme_transitioning = true
         this.custom_theme = (this.custom_theme ?? this.system_theme) === 'dark' ? 'light' : 'dark'
         setTimeout(() => this.theme_transitioning = false, 750)
-      }
+      },
+      styleForBox(i, j) {
+        let style = {}
+        if (!this.res.length) return style
+
+        let border = this.sol.borders
+        if (!border[i][j]) return style
+
+        const all = ['top', 'bottom', 'left', 'right']
+        all.map(p => {
+          let firstUpper = `${p.charAt(0).toUpperCase()}${p.slice(1)}`
+          if (border[i][j].includes(p)) {
+            style[`border${firstUpper}`] = '1px rgba(1,2,3,0.45) solid'
+          } else {
+            style[`border${firstUpper}`] = '1px transparent solid'
+          }
+        })
+        return style
+      },
     },
     computed: {
       sol() {
@@ -393,9 +431,15 @@
       },
       num: {
         handler() {
+          if (this.block8target > this.num[7]) {
+            this.block8target = this.num[7]
+          }
           this.calc()
         },
         deep: true,
+      },
+      block8target() {
+        this.calc()
       },
       numOfBoard() {
         this.is_low_records = this.numOfBoard % 4 === 0
