@@ -147,6 +147,12 @@
             {{ now + 1 }}
             <v-divider></v-divider>
             {{ res.length }}
+            <v-icon
+              icon="mdi-help"
+              size="12"
+              v-tooltip="`计算已终止，因为已查找到 ${res.length} 个最佳方案`"
+              v-if="res.length >= 10">
+            </v-icon>
           </v-col>
           <v-col>
             <v-btn :disabled="res.length<=(now+1)" icon="mdi-chevron-right" @click="now++" variant="text"></v-btn>
@@ -177,7 +183,7 @@
       </v-container>
     </v-main>
     <v-footer app class="d-flex flex-column" :class="{ 'color-transition': theme_transitioning }">
-      <div>2025 — <strong>jiejunf</strong></div>
+      <div>{{ current_version }} — <strong>jiejunf</strong></div>
     </v-footer>
 
     <v-dialog v-model="show_board_dialog" activator="#nav_board_config" width="auto">
@@ -267,6 +273,7 @@
   createApp({
     data() {
       return {
+        current_version: '2026.06.08',
         nav_drawer: null,
         show_board_dialog: null,
         show_blocks_dialog: null,

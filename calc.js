@@ -307,7 +307,7 @@ function dfs8(positionIndex) {
     if (getBlockUsed(solvingTable)[8] >= target8) {
       dfs(0)
     }
-    return results.length >= 9999
+    return results.length >= 10
   }
   const x = Math.floor(positionIndex / column), y = positionIndex % column;
   if (solvingTable[x][y] !== -1) {
@@ -336,7 +336,7 @@ function dfs(positionIndex) {
     }
     solvedTable.borders = solvedBorder
     results.push(solvedTable);
-    return results.length >= 9999;
+    return results.length >= 10;
 
   }
   const x = Math.floor(positionIndex / column), y = positionIndex % column;
